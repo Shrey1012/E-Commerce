@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { popularProducts } from "../data";
 import Product from "./Product";
 import axios from "axios";
 
@@ -59,10 +58,10 @@ const Products = ({ cat, filters, sort }) => {
   return (
     <Container>
       {cat
-        ? filteredProducts.map((item) => <Product item={item} key={item.id} />)
+        ? filteredProducts.map((item) => <Product item={item} key={item._id} />)
         : products
             .slice(0, 8)
-            .map((item) => <Product item={item} key={item.id} />)}
+            .map((item) => <Product item={item} key={item._id} />)}
     </Container>
   );
 };

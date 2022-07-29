@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { mobile } from "../responsive";
+import { register } from "../redux/apiCalls";
 
 const Container = styled.div`
   width: 100vw;
