@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { mobile } from "../responsive";
 import { register } from "../redux/apiCalls";
+import { useDispatch, useSelector } from "react-redux";
 
 const Container = styled.div`
   width: 100vw;
@@ -54,9 +55,29 @@ const Button = styled.button`
   background-color: teal;
   color: white;
   cursor: pointer;
+  &:disabled{
+    color: green;
+    cursor: not-allowed;
+  }
+`;
+
+const Error = styled.span`
+  padding: 10px;
+  color: red;
 `;
 
 const Register = () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+
+  const dispatch = useDispatch();
+  const { isFetching, error } = useSelector((state) => state.user);
+
+  const handleClick = (e) => {
+    e.preventDefault();
+    register(dispatch, { email,username,password });
+  };
   return (
     <Container>
       <Wrapper>
@@ -64,15 +85,16 @@ const Register = () => {
         <Form>
           <Input type="text" placeholder="First Name" />
           <Input type="text" placeholder="Last Name" />
-          <Input type="text" placeholder="Username" />
-          <Input type="text" placeholder="Email" />
-          <Input type="text" placeholder="Password" />
-          <Input type="text" placeholder="Confirm Password" />
+          <Input type="text" placeholder="Username" onChange={(e) => setUsername(e.target.value)}/>
+          <Input type="text" placeholder="Email" onChange={(e) => setEmail(e.target.value)}/>
+          <Input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)}/>
+          <Input type="password" placeholder="Confirm Password"/>
           <Agreement>
             By creating an account, I consent to the processing of my personal
             data in accordance with the <b>PRIVACY POLICY</b>
           </Agreement>
-          <Button>CREATE</Button>
+          <Button onClick={handleClick} disabled={isFetching}>CREATE</Button>
+          {error && <Error>Something went wrong...</Error> }
         </Form>
       </Wrapper>
     </Container>

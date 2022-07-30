@@ -1,128 +1,58 @@
 const router = require("express").Router();
 const User = require("../models/user");
 const CryptoJS = require("crypto-js");
-const { registerSchema,loginSchema } = require("../helpers/validateAuth")
 const jwt = require("jsonwebtoken");
 
-//register
-router.post("/register",async (req,res) => {
-	try{
-		const { username,email,pass } = req.body;
+//REGISTER
+router.post("/register", async (req, res) => {
+  const newUser = new User({
+    username: req.body.username,
+    email: req.body.email,
+    password: CryptoJS.AES.encrypt(
+      req.body.password,
+      process.env.PASS_SEC
+    ).toString(),
+  });
 
-		// validate fields
-		const { error } = registerSchema.validate({ username: username,email: email,password: pass });
-		if(error) {
-			//validation error object
-			return res.json({
-				error: error,
-				success: false
-			}).status(400)
-		}
+  try {
+    const savedUser = await newUser.save();
+    res.status(201).json(savedUser);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
 
-		//create a new user
-		const newUser = new User({
-			username: username,
-			email: email,
-			password: CryptoJS.AES.encrypt(pass, process.env.CRYPTO_KEY).toString()
-		})
-		const savedUser = await newUser.save();
+//LOGIN
 
-		//create a token
-		const accessToken = jwt.sign({
-			id: savedUser._id,
-			isAdmin: savedUser.isAdmin
-		},process.env.JWT_SECRET,{
-			expiresIn: "3d"
-		})
+router.post("/login", async (req, res) => {
+  try {
+    const user = await User.findOne({ username: req.body.username });
+    !user && res.status(401).json("Wrong credentials!");
 
-		//send the savedUser
-		const { password,...others } = savedUser._doc;
+    const hashedPassword = CryptoJS.AES.decrypt(
+      user.password,
+      process.env.PASS_SEC
+    );
+    const OriginalPassword = hashedPassword.toString(CryptoJS.enc.Utf8);
 
-		return res.status(201).json({
-			savedUser: {...others,accessToken},
-			success: true
-		})
+    OriginalPassword !== req.body.password &&
+      res.status(401).json("Wrong credentials!");
 
-	} catch (err) {
-		//respond with an error
-		return res.status(500).json(err.message)
-	}
-})
+    const accessToken = jwt.sign(
+      {
+        id: user._id,
+        isAdmin: user.isAdmin,
+      },
+      process.env.JWT_SEC,
+      { expiresIn: "3d" }
+    );
 
-//login
-router.post("/login",async (req,res) => {
-	try{
-		const { email,pass } = req.body;
+    const { password, ...others } = user._doc;
 
-		// validate fields
-		const { error } = loginSchema.validate({ email: email,password: pass });
-		if(error) {
-			//validation error object
-			console.log("validation error",error)
-
-			return res.status(400).json({
-				message: error.details[0].message,
-				success: false
-			})
-		}
-
-		//try to find the user
-		const userFound = await User.findOne({ email: email }).lean().exec()
-
-		//user not found
-		if (!userFound) {
-			console.log("email wrong")
-			return res.status(404).json({
-				message: "email or password is wrong",
-				success: false
-			})
-		}
-
-		console.log(userFound)
-
-		//decrypt the password
-		const decryptPass = CryptoJS.AES.decrypt(
-			userFound.password,
-			process.env.CRYPTO_KEY
-		).toString(CryptoJS.enc.Utf8)
-
-		console.log(decryptPass)
-
-		//compare password
-		if(decryptPass !== pass) {
-			console.log("pass wrong")
-			return res.status(404).json({
-				message: "email or password is wrong",
-				success: false
-			})
-		}
-
-		//create a token
-		const accessToken = jwt.sign({
-			id: userFound._id,
-			isAdmin: userFound.isAdmin
-		},process.env.JWT_SECRET,{
-			expiresIn: "3d"
-		})
-
-		//send the savedUser
-		const { password,...others } = userFound;
-
-		return res.status(200).json({
-			user: others,
-			accessToken,
-			success: true
-		})
-
-	} catch (err) {
-		//respond with an error
-		console.error(err)
-		return res.status(404).json({
-			message: "Something went wrong",
-			success: false
-		})
-	}
-})
-
+    res.status(200).json({ ...others, accessToken });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
 
 module.exports = router;
