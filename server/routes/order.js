@@ -1,104 +1,71 @@
+const Order = require("../models/Order");
+const {
+  verifyToken,
+  verifyTokenAndAuthorization,
+  verifyTokenAndAdmin,
+} = require("./verifyToken");
+
 const router = require("express").Router();
-const {verifyTokenAndAuthorization,verifyTokenAndAdmin,verifyToken} = require("./verifyToken")
-const CryptoJS = require("crypto-js");
-const { isValidObjectId } = require("mongoose")
-const Order = require("../models/Order")
 
-//create order
-router.post("/",verifyToken,async (req,res) => {
-	const newOrder = new Order(req.body)
+//CREATE
 
-	try{
-		const savedOrder = await newOrder.save();
-		res.status(200).json({
-			savedOrder: savedOrder,
-			success: true
-		})
-	} catch (err) {
-		res.status(500).json(err)
-	}
-})
+router.post("/", verifyToken, async (req, res) => {
+  const newOrder = new Order(req.body);
 
+  try {
+    const savedOrder = await newOrder.save();
+    res.status(200).json(savedOrder);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
 
+//UPDATE
+router.put("/:id", verifyTokenAndAdmin, async (req, res) => {
+  try {
+    const updatedOrder = await Order.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: req.body,
+      },
+      { new: true }
+    );
+    res.status(200).json(updatedOrder);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
 
-//edit order
-router.put('/:id',verifyTokenAndAdmin,async (req,res) => {
-	try{
-		//verify object id.
-		if(!isValidObjectId(req.params.id)) {
-			return res.status(400).json({
-				message: "Invalid object id",
-				success: false
-			})
-		}
+//DELETE
+router.delete("/:id", verifyTokenAndAdmin, async (req, res) => {
+  try {
+    await Order.findByIdAndDelete(req.params.id);
+    res.status(200).json("Order has been deleted...");
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
 
-		//update query
-		const updatedOrder = await Order.findByIdAndUpdate(req.params.id,{
-			$set: req.body
-		},{new: true}).lean().exec()
+//GET USER ORDERS
+router.get("/find/:userId", verifyTokenAndAuthorization, async (req, res) => {
+  try {
+    const orders = await Order.find({ userId: req.params.userId });
+    res.status(200).json(orders);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
 
-		return res.status(200).json(updatedOrder)
+// //GET ALL
 
-	} catch(err) {
-		res.status(500).json(err.message)
-	}
-})
-
-//delete order
-router.delete("/:id",verifyTokenAndAdmin,async (req,res) => {
-	try{
-		//validate object id
-		if(!isValidObjectId(req.params.id)) {
-			return res.status(400).json({
-				message: "Invalid object id",
-				success: false
-			})
-		}
-
-		//delete query
-		await CartOrder.findByIdAndDelete(req.params.id).lean().exec()
-		return res.status(200).json({
-			message: "CartOrder has been deleted",
-			success: true
-		})
-	} catch (err) {	
-		res.status(500).json(err)
-	}
-})
-
-//get user orders
-router.get("/:id",verifyTokenAndAuthorization,async (req,res) => {
-	try{
-		//validate object id
-		if(!isValidObjectId(req.params.id)) {
-			return res.status(400).json({
-				message: "Invalid object id",
-				success: false
-			})
-		}
-
-		//get query
-		const orders = await Order.find({ userId: req.params.id }).lean().exec()
-
-		return res.status(200).json({
-			orders,
-			success: true
-		})
-	} catch (err) {	
-		return res.status(500).json(err)
-	}
-})
-
-//get all orders
-
-router.get("/",verifyTokenAndAdmin,async (req,res) => {
-	try{
-		const orders = await Order.find().lean().exec()
-		res.status(200).json(orders)
-	} catch (err) {
-		res.status(500).send(err)
-	}
-})
+router.get("/", verifyTokenAndAdmin, async (req, res) => {
+  try {
+    const orders = await Order.find();
+    res.status(200).json(orders);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
 
 // GET MONTHLY INCOME
 
@@ -136,6 +103,5 @@ router.get("/income", verifyTokenAndAdmin, async (req, res) => {
     res.status(500).json(err);
   }
 });
-
 
 module.exports = router;
