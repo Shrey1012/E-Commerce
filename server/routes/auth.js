@@ -2,6 +2,8 @@ const router = require("express").Router();
 const User = require("../models/user");
 const CryptoJS = require("crypto-js");
 const jwt = require("jsonwebtoken");
+const LocalStorage = require('node-localstorage').LocalStorage;
+localStorage = new LocalStorage('./scratch');
 
 //REGISTER
 router.post("/register", async (req, res) => {
@@ -54,5 +56,9 @@ router.post("/login", async (req, res) => {
     res.status(500).json(err);
   }
 });
+
+router.post("/logout", async (req, res) => {
+  localStorage.removeItem("persist:root");
+})
 
 module.exports = router;

@@ -17,6 +17,7 @@
     "joi": "^17.6.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.4.6",
+    "node-localstorage": "^2.2.1",
     "stripe": "^9.15.0"
   }
 }
