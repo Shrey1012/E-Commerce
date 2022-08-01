@@ -9,6 +9,7 @@ const cartRoute = require("./routes/cart");
 const orderRoute = require("./routes/order");
 const StripeRoute = require("./routes/stripe");
 const cors = require("cors")
+const bodyParser = require("body-parser");
 
 dotenv.config();
 
@@ -19,6 +20,8 @@ mongoose
 
 app.use(cors());
 app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 app.use("/api/auth", authRoute);
 
