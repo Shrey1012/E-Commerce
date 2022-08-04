@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:5000/api/";
+const BASE_URL = "https://shopin-ecommerce.herokuapp.com/api/";
 let TOKEN;
 if (localStorage.getItem(("persist:root").user!=null)) {
    TOKEN = JSON.parse(JSON.parse(localStorage.getItem("persist:root")).user)
