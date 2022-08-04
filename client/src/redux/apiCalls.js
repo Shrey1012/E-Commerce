@@ -27,7 +27,7 @@ export const register = async (dispatch, user) => {
 };
 
 export const logoutUser = async (dispatch) => {
-  dispatch(logout())
+  dispatch(logout());
   dispatch(logoutCart());
   try {
     const res = await publicRequest.post("/auth/logout");
@@ -35,4 +35,8 @@ export const logoutUser = async (dispatch) => {
   } catch (err) {
     console.log(err);
   }
+};
+
+export const emptyCart = async (dispatch) => {
+  dispatch(logoutCart());
 };

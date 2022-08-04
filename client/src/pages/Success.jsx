@@ -1,8 +1,40 @@
-import React from 'react'
+import React from "react";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useLocation } from "react-router";
+import { Link } from "react-router-dom";
+import { emptyCart } from "../redux/apiCalls";
 import { userRequest } from "../requestMethods";
+import styled from "styled-components";
+import Confetti from "../components/Confetti";
+
+const Container = styled.div`
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #ce9b9b;
+`;
+
+const Text = styled.div`
+  font-size: 34px;
+  color: aliceblue;
+  font-weight: 500;
+  margin-bottom: 10px;
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+`;
+const Button = styled.button`
+  width: 125%;
+  height: 50px;
+  margin-top: 25px;
+  border: none;
+  border-radius: 12px;
+  padding: 15px 20px;
+  background-color: teal;
+  color: white;
+  cursor: pointer;
+`;
 
 const Success = () => {
   const location = useLocation();
@@ -29,21 +61,24 @@ const Success = () => {
     data && createOrder();
   }, [cart, data, currentUser]);
 
+  const dispatch = useDispatch();
+
+  const handleClick = () => {
+    emptyCart(dispatch);
+  };
+
   return (
-    <div
-      style={{
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      {orderId
-        ? `Order has been created successfully. Your order number is ${orderId}`
-        : `Successfull. Your order is being prepared...`}
-      <button style={{ padding: 10, marginTop: 20 }}>Go to Homepage</button>
-    </div>
+    <Container>
+      <Confetti />
+      <Text>
+        {orderId
+          ? `Order has been created successfully. Your order number is ${orderId}`
+          : `Successfull. Your order is being prepared...`}
+      </Text>
+      <Link to="/">
+        <Button onClick={handleClick}>Go to Home</Button>
+      </Link>
+    </Container>
   );
 };
 
